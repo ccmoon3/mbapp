@@ -4,9 +4,10 @@ angular.module('starter.controllers', [])
 $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|content):|data:image\//);
 })
 
-.controller('DashCtrl', function($scope, $cordovaCamera) {
+.controller('DashCtrl', function($scope, $ionicPopup, $cordovaCamera) {
     var MaxWidth = 0.9*window.innerWidth;
     var MaxHeight = 0.8*window.innerHeight;
+
     $scope.takePhoto = function () {
 
                            var options = {
@@ -22,8 +23,6 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                        //      imageURI = "img/test.png";
                              loadImage(imageURI, function(canvas){
                              dataURL = canvas.toDataURL("image/png");
-                       //         console.log(dataURL);
-                         //       alert(dataURL);
                                 $(function() {
                                                                            var params = {
                                                                                // Request parameters
@@ -34,7 +33,6 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
 
                                                                            $.ajax({
                                                                                url: "https://api.projectoxford.ai/face/v1.0/detect?" + $.param(params),
-                                                                     //          url: "https://api.projectoxford.ai/face/v1.0/detect",
                                                                                beforeSend: function(xhrObj){
                                                                                    // Request headers
                                                                           //         xhrObj.setRequestHeader("Content-Type","application/json");
@@ -46,50 +44,41 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                                                                                data: makeblob(dataURL),
                                                                       //         data:'{"url":"http://images.wisegeek.com/triangular-face.jpg"}',
                                                                                processData: false,
+                                                                               timeout:4000
                                                                            })
                                                                            .done(function(data) {
                                                                                console.log(JSON.stringify(data));
-                                                                         //      alert("face++ send done.");
-                                                                               alert(data[0].faceAttributes.gender);
-                                                                               console.log(data[0].faceAttributes.gender);
+
+                                                                               if (data && data[0] && data[0].faceAttributes){
+                                                                                  if(data[0].faceAttributes.gender === "female"){
+                                                                                     popAlert("This is a woman","Let\'s add mascara on it!");
+                                                                                  }
+                                                                                  else if(data[0].faceAttributes.gender === "male"){
+                                                                                     popAlert("This is a man","Let\'s add razor on it!");
+                                                                                  }
+                                                                               }
+                                                                               else {
+                                                                                     popAlert("Cannot define the gender","Please take a clear selfie again!");
+                                                                               }
                                                                            })
-                                                                           .fail(function(error) {
+                                                                           .fail(function(error, textStatus) {
+                                                                               if(textStatus === "timeout"){
+                                                                                  popAlert("Failed from timeout", "Please check your Internet connection.");
+                                                                                  //todo: recommend mascara or razor after reconnection
+                                                                               }
+                                                                               else{
+                                                                                  popAlert("Request failed", error.message);
+                                                                               }
+
                                                                                console.log(JSON.stringify(error));
-                                                                               alert("face++ error.");
+
                                                                            });
                                                                        });
-                          /*        $(function() {
-                                         var params = {
-                                             // Request parameters
-                                             "visualFeatures": "Face",
-                                         };
-
-                                         $.ajax({
-                                              url: "https://api.projectoxford.ai/vision/v1/analyses?" + $.param(params),
-                                             beforeSend: function(xhrObj){
-                                                 // Request headers
-                                                 xhrObj.setRequestHeader("Content-Type","application/octet-stream");
-                                                 xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","721e1c0487cb45d8b6356644c5c8709e");
-                                             },
-                                             type: "POST",
-                                             // Request body
-                                             data: makeblob(dataURL),
-                                             processData: false,
-                                         })
-                                         .done(function(data) {
-                                             console.log(JSON.stringify(data));
-                                             alert("success");
-                                         })
-                                         .fail(function(error) {
-                                             console.log(JSON.stringify(error));
-                                             alert("error");
-                                         });
-                                     });*/
                                 });
 
                            }, function(err) {
-                             // error
-                             alert(err);
+                              popAlert("Camera connection failed","Restart the app and play again!");
+                              console.log(err);
                            });
 
                          }
@@ -99,9 +88,9 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                 var ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 var image = new Image();
+                console.log("loadImage"+imageURI);
 
                image.onload = function() {
-                   	//todo:wrap function
                     if(image.width> MaxWidth ||image.height> MaxHeight||(image.height< MaxHeight && image.width< MaxWidth)){
                             scale =  Math.min(MaxWidth / image.width,MaxHeight / image.height );
                             image.height = scale * image.height;
@@ -121,7 +110,7 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
 
 
       // convert base64/URLEncoded data component to raw binary data held in a string
-         makeblob = function (dataURL) {
+       makeblob = function (dataURL) {
                      var BASE64_MARKER = ';base64,';
                      if (dataURL.indexOf(BASE64_MARKER) == -1) {
                          var parts = dataURL.split(',');
@@ -141,81 +130,19 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                      }
 
                      return new Blob([uInt8Array], { type: contentType });
-
-          /*           BlobToBinaryString(new Blob([uInt8Array], { type: contentType }), function(databinary){
-                        console.dir(databinary);
-                        $(function() {
-                                                                       var params = {
-                                                                           // Request parameters
-                                                                           "returnFaceId": "true",
-                                                                           "returnFaceLandmarks": "false",
-                                                                           "returnFaceAttributes": "gender",
-                                                                       };
-
-                                                                       $.ajax({
-                                                                           url: "https://api.projectoxford.ai/face/v1.0/detect?" + $.param(params),
-                                                                           beforeSend: function(xhrObj){
-                                                                               // Request headers
-                                                                               xhrObj.setRequestHeader("Content-Type","application/json");
-                                                                               xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","305d3ac2f26f4247bf9175c59f5802ab");
-                                                                           },
-                                                                           type: "POST",
-                                                                           // Request body
-                                                                           data: JSON.stringify(makeblob(dataURL)),
-                                                                       })
-                                                                       .done(function(data) {
-                                                                           alert("done.");
-                                                                           alert(data);
-                                                                           alert("Gender:"+data.faceAttributes.gender);
-                                                                       })
-                                                                       .fail(function(error) {
-                                                                           alert("fail.");
-                                                                           console.log(JSON.stringify(error));
-                                                                           alert(error);
-                                                                           console.log(error.message);
-                                                                           alert("Error Message:"+error.message);
-                                                                       });
-                                                                   });
-                     });*/
                  }
 
-        BlobToBinaryString = function(blob, callback, opt_errorCallback) {
-                     var reader = new FileReader();
-                     reader.onload = function(e) {
-                       alert(e.target.result);
-                       callback(e.target.result);
-                     };
-                     reader.onerror = function(e) {
-                       if (opt_errorCallback) {
-                         opt_errorCallback(e);
-                       }
-                     };
-                     reader.readAsBinaryString(blob);
-                 }
+        popAlert = function(head, text) {
 
-})
+              var alertPopup = $ionicPopup.alert({
+                          title: head,
+                          template: text
+              });
 
-.controller('ChatsCtrl', function($scope, Chats) {
-  // With the new view caching in Ionic, Controllers are only called
-  // when they are recreated or on app start, instead of every page change.
-  // To listen for when this page is active (for example, to refresh data),
-  // listen for the $ionicView.enter event:
-  //
-  //$scope.$on('$ionicView.enter', function(e) {
-  //});
+          alertPopup.then(function(res) {
+            console.log(text);
+          });
+        }
 
-  $scope.chats = Chats.all();
-  $scope.remove = function(chat) {
-    Chats.remove(chat);
-  };
-})
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
-  $scope.chat = Chats.get($stateParams.chatId);
-})
-
-.controller('AccountCtrl', function($scope) {
-  $scope.settings = {
-    enableFriends: true
-  };
 });
