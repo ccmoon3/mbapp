@@ -9,7 +9,7 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
     var MaxHeight = 0.8*window.innerHeight;
     $scope.takePhoto = function () {
 
-                /*           var options = {
+                           var options = {
                              quality: 50,
                              destinationType: Camera.DestinationType.FILE_URI,
                              sourceType: Camera.PictureSourceType.CAMERA,
@@ -18,10 +18,10 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                        	     correctOrientation:true
                            };
 
-                           $cordovaCamera.getPicture(options).then(function(imageURI) {*/
-                             imageURI = "img/test.png";
+                           $cordovaCamera.getPicture(options).then(function(imageURI) {
+                       //      imageURI = "img/test.png";
                              loadImage(imageURI, function(canvas){
-                                dataURL = canvas.toDataURL("image/png");
+                             dataURL = canvas.toDataURL("image/png");
                        //         console.log(dataURL);
                          //       alert(dataURL);
                                 $(function() {
@@ -49,7 +49,7 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                                                                            })
                                                                            .done(function(data) {
                                                                                console.log(JSON.stringify(data));
-                                                                               alert("face++ send done.");
+                                                                         //      alert("face++ send done.");
                                                                                alert(data[0].faceAttributes.gender);
                                                                                console.log(data[0].faceAttributes.gender);
                                                                            })
@@ -87,10 +87,10 @@ $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|cont
                                      });*/
                                 });
 
-                     /*      }, function(err) {
+                           }, function(err) {
                              // error
                              alert(err);
-                           });*/
+                           });
 
                          }
 
